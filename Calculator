@@ -1,0 +1,120 @@
+
+import React, { useState, useEffect, useCallback } from "react";
+import { SemesterCost } from "@/entities/SemesterCost";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Plus, TrendingUp } from "lucide-react";
+
+import SemesterForm from "../components/calculator/SemesterForm";
+import SemesterCard from "../components/calculator/SemesterCard";
+import CostBreakdown from "../components/calculator/CostBreakdown";
+
+export default function Calculator() {
+  const [semesters, setSemesters] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingSemester, setEditingSemester] = useState(null);
+  const [selectedSemester, setSelectedSemester] = useState(null);
+
+  const loadSemesters = useCallback(async () => {
+    const data = await SemesterCost.list("-start_date");
+    setSemesters(data);
+    // Only set selectedSemester if it's null to avoid infinite loops if it changes externally
+    // or if the list becomes empty and selectedSemester is no longer valid.
+    if (data.length > 0 && !selectedSemester) {
+      setSelectedSemester(data[0]);
+    } else if (data.length === 0 && selectedSemester) {
+      // If no semesters exist, clear selected semester
+      setSelectedSemester(null);
+    } else if (selectedSemester && !data.some(s => s.id === selectedSemester.id)) {
+      // If selectedSemester is no longer in the list (e.g., deleted), select the first one or null
+      setSelectedSemester(data.length > 0 ? data[0] : null);
+    }
+  }, [selectedSemester]); // selectedSemester is a dependency because it's used in the conditional logic
+
+  useEffect(() => {
+    loadSemesters();
+  }, [loadSemesters]); // loadSemesters is a dependency because it's defined outside useEffect and used inside it.
+
+  const handleSubmit = async (data) => {
+    if (editingSemester) {
+      await SemesterCost.update(editingSemester.id, data);
+    } else {
+      await SemesterCost.create(data);
+    }
+    setShowForm(false);
+    setEditingSemester(null);
+    loadSemesters();
+  };
+
+  const handleDelete = async (id) => {
+    await SemesterCost.delete(id);
+    if (selectedSemester?.id === id) {
+      setSelectedSemester(null); // Clear selected if it was the one deleted
+    }
+    loadSemesters(); // Reload semesters to update the list and potentially re-select
+  };
+
+  return (
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Semester Cost Calculator</h1>
+          <p className="text-gray-600 mt-1">Estimate and track your semester expenses</p>
+        </div>
+        <Button 
+          onClick={() => {
+            setEditingSemester(null); // Ensure no semester is being edited when adding new
+            setShowForm(!showForm);
+          }}
+          className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Semester
+        </Button>
+      </div>
+
+      {showForm && (
+        <SemesterForm
+          semester={editingSemester}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingSemester(null);
+          }}
+        />
+      )}
+
+      {semesters.length === 0 && !showForm && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <TrendingUp className="w-12 h-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Semesters Yet</h3>
+            <p className="text-gray-500 text-center mb-4">
+              Start by adding your first semester to calculate costs
+            </p>
+            <Button onClick={() => {
+              setEditingSemester(null); // Ensure no semester is being edited
+              setShowForm(true);
+            }}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add First Semester
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          {semesters.map((semester) => (
+            <SemesterCard
+              key={semester.id}
+              semester={semester}
+              isSelected={selectedSemester?.id === semester.id}
+              onSelect={() => setSelectedSemester(semester)}
+              onEdit={() => {
+                setEditingSemester(semester);
+                setShowForm(true);
+              }}
+              onDelete={() => handleDelete(semester.id)}
+            />
+ 
