@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Document } from "@/entities/Document";
+import { UploadFile } from "@/integrations/Core";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+
+import DocumentUpload from "../components/documents/DocumentUpload";
+import DocumentGrid from "../components/documents/DocumentGrid";
+import DocumentFilters from "../components/documents/DocumentFilters";
+
+export default function Documents() {
+  const [documents, setDocuments] = useState([]);
+  const [showUpload, setShowUpload] = useState(false);
+  const [filter, setFilter] = useState("all");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadDocuments();
+  }, []);
+
+  const loadDocuments = async () => {
+    const data = await Document.list("-upload_date");
+    setDocuments(data);
+  };
+
+  const handleUpload = async (data) => {
+    setLoading(true);
+    const { file_url } = await UploadFile({ file: data.file });
+    await Document.create({
+      ...data,
+      file_url,
+      upload_date: new Date().toISOString().split('T')[0]
+    });
+    setShowUpload(false);
+    setLoading(false);
+    loadDocuments();
+  };
+
+  const handleDelete = async (id) => {
+    await Document.delete(id);
+    loadDocuments();
+  };
+
+  const filteredDocs = filter === "all" 
+    ? documents 
+    : documents.filter(doc => doc.category === filter);
+
+  return (
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Document Manager</h1>
+          <p className="text-gray-600 mt-1">Store and organize your school documents</p>
+        </div>
+        <Button 
+          onClick={() => setShowUpload(!showUpload)}
+          className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+        >
+          <Upload className="w-4 h-4 mr-2" />
+          Upload Document
+        </Button>
+      </div>
+
+      {showUpload && (
+        <DocumentUpload
+          onSubmit={handleUpload}
+          onCancel={() => setShowUpload(false)}
+          loading={loading}
+        />
+      )}
+
+      <DocumentFilters 
+        currentFilter={filter}
+        onFilterChange={setFilter}
+        documents={documents}
+      />
+
+      <DocumentGrid 
+        documents={filteredDocs}
+        onDelete={handleDelete}
+      />
+    </div>
+  );
+}
