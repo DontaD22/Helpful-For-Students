@@ -1,0 +1,106 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+
+const CATEGORIES = [
+  "tuition", "textbooks", "housing", "food", "transportation", 
+  "entertainment", "health", "supplies", "technology", "other"
+];
+
+export default function ExpenseForm({ expense, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState(expense || {
+    title: "",
+    amount: "",
+    category: "food",
+    date: new Date().toISOString().split('T')[0],
+    notes: ""
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      amount: parseFloat(formData.amount)
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{expense ? 'Edit Expense' : 'Add New Expense'}</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Description</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({...formData, title: e.target.value})}
+                placeholder="What did you buy?"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount ($)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                placeholder="0.00"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notes (optional)</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              placeholder="Any additional details..."
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" className="bg-gradient-to-r from-red-500 to-pink-500">
+            {expense ? 'Update' : 'Add'} Expense
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+}
