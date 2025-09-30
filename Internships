@@ -1,0 +1,84 @@
+import React, { useState, useEffect, useCallback } from "react";
+import { Internship, InternshipMatch } from "@/entities/all";
+import { Button } from "@/components/ui/button";
+import { Heart, X, RotateCcw, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+import SwipeCard from "../components/internships/SwipeCard";
+import MatchesList from "../components/internships/MatchesList";
+import EmptyState from "../components/internships/EmptyState";
+
+export default function Internships() {
+  const [internships, setInternships] = useState([]);
+  const [matches, setMatches] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [showMatches, setShowMatches] = useState(false);
+
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    const [internshipsData, matchesData] = await Promise.all([
+      Internship.list(),
+      InternshipMatch.list()
+    ]);
+    
+    const matchedIds = matchesData.map(m => m.internship_id);
+    const unmatched = internshipsData.filter(i => !matchedIds.includes(i.id));
+    
+    setInternships(unmatched);
+    setMatches(matchesData);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const handleSwipe = async (direction) => {
+    if (currentIndex >= internships.length) return;
+
+    const currentInternship = internships[currentIndex];
+    
+    await InternshipMatch.create({
+      internship_id: currentInternship.id,
+      status: direction === 'right' ? 'liked' : 'passed'
+    });
+
+    setCurrentIndex(prev => prev + 1);
+    
+    if (direction === 'right') {
+      loadData();
+    }
+  };
+
+  const handleUndo = async () => {
+    if (currentIndex === 0) return;
+    
+    const previousInternship = internships[currentIndex - 1];
+    const previousMatch = matches.find(m => m.internship_id === previousInternship.id);
+    
+    if (previousMatch) {
+      await InternshipMatch.delete(previousMatch.id);
+      setCurrentIndex(prev => prev - 1);
+      loadData();
+    }
+  };
+
+  const currentInternship = internships[currentIndex];
+  const hasMore = currentIndex < internships.length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 p-4 md:p-8">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+ 
