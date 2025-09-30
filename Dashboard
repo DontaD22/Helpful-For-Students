@@ -1,0 +1,120 @@
+import React, { useState, useEffect } from "react";
+import { Expense, Income, SavingsGoal, SemesterCost } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DollarSign, TrendingUp, TrendingDown, Target, BookOpen, AlertCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { Button } from "@/components/ui/button";
+
+import StatsCard from "../components/dashboard/StatsCard";
+import RecentTransactions from "../components/dashboard/RecentTransactions";
+import GoalsOverview from "../components/dashboard/GoalsOverview";
+import FinancialTips from "../components/dashboard/FinancialTips";
+import SpendingChart from "../components/dashboard/SpendingChart";
+
+export default function Dashboard() {
+  const [expenses, setExpenses] = useState([]);
+  const [income, setIncome] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [semesterCosts, setSemesterCosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [expensesData, incomeData, goalsData, costsData] = await Promise.all([
+      Expense.list("-date", 10),
+      Income.list("-date", 10),
+      SavingsGoal.list("-created_date"),
+      SemesterCost.list("-start_date", 1)
+    ]);
+    setExpenses(expensesData);
+    setIncome(incomeData);
+    setGoals(goalsData);
+    setSemesterCosts(costsData);
+    setLoading(false);
+  };
+
+  const totalIncome = income.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const totalExpenses = expenses.reduce((sum, item) => sum + (item.amount || 0), 0);
+  const netBalance = totalIncome - totalExpenses;
+
+  const currentSemester = semesterCosts[0];
+  const semesterTotal = currentSemester ? 
+    (currentSemester.tuition || 0) + 
+    (currentSemester.books || 0) + 
+    (currentSemester.housing || 0) + 
+    (currentSemester.meal_plan || 0) + 
+    (currentSemester.transportation || 0) + 
+    (currentSemester.other_fees || 0) : 0;
+
+  return (
+    <div className="p-4 md:p-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
+        <p className="text-gray-600 mt-1">Here's your financial overview</p>
+      </div>
+
+      {netBalance < 0 && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You're spending more than you're earning. Review your budget and consider cutting expenses.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatsCard
+          title="Total Income"
+          value={`$${totalIncome.toFixed(2)}`}
+          icon={TrendingUp}
+          bgColor="from-green-500 to-emerald-500"
+          loading={loading}
+        />
+        <StatsCard
+          title="Total Expenses"
+          value={`$${totalExpenses.toFixed(2)}`}
+          icon={TrendingDown}
+          bgColor="from-red-500 to-pink-500"
+          loading={loading}
+        />
+        <StatsCard
+          title="Net Balance"
+          value={`$${netBalance.toFixed(2)}`}
+          icon={DollarSign}
+          bgColor={netBalance >= 0 ? "from-blue-500 to-cyan-500" : "from-orange-500 to-red-500"}
+          loading={loading}
+        />
+        <StatsCard
+          title="Semester Cost"
+          value={currentSemester ? `$${semesterTotal.toFixed(2)}` : "Not set"}
+          icon={BookOpen}
+          bgColor="from-purple-500 to-indigo-500"
+          loading={loading}
+        />
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <SpendingChart expenses={expenses} loading={loading} />
+          <RecentTransactions 
+            expenses={expenses} 
+            income={income} 
+            loading={loading}
+          />
+        </div>
+
+        <div className="space-y-6">
+          <GoalsOverview goals={goals} loading={loading} />
+          <FinancialTips netBalance={netBalance} expenses={expenses} />
+        </div>
+      </div>
+    </div>
+  );
+}
