@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { SavingsGoal } from "@/entities/SavingsGoal";
+import { Button } from "@/components/ui/button";
+import { Plus, Target as TargetIcon } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+
+import GoalForm from "../components/goals/GoalForm";
+import GoalCard from "../components/goals/GoalCard";
+
+export default function Goals() {
+  const [goals, setGoals] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingGoal, setEditingGoal] = useState(null);
+
+  useEffect(() => {
+    loadGoals();
+  }, []);
+
+  const loadGoals = async () => {
+    const data = await SavingsGoal.list("-created_date");
+    setGoals(data);
+  };
+
+  const handleSubmit = async (data) => {
+    if (editingGoal) {
+      await SavingsGoal.update(editingGoal.id, data);
+    } else {
+      await SavingsGoal.create(data);
+    }
+    setShowForm(false);
+    setEditingGoal(null);
+    loadGoals();
+  };
+
+  const handleDelete = async (id) => {
+    await SavingsGoal.delete(id);
+    loadGoals();
+  };
+
+  const handleUpdateProgress = async (id, newAmount) => {
+    await SavingsGoal.update(id, { current_amount: newAmount });
+    loadGoals();
+  };
+
+  return (
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Savings Goals</h1>
+          <p className="text-gray-600 mt-1">Track your financial targets</p>
+        </div>
+        <Button 
+          onClick={() => setShowForm(!showForm)}
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Goal
+        </Button>
+      </div>
+
+      {showForm && (
+        <GoalForm
+          goal={editingGoal}
+          onSubmit={handleSubmit}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingGoal(null);
+          }}
+        />
+      )}
+
+      {goals.length === 0 && !showForm && (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <TargetIcon className="w-12 h-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Goals Yet</h3>
+            <p className="text-gray-500 text-center mb-4">
+              Start setting savings goals to track your financial progress
+            </p>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Create First Goal
+            </Button>
+ 
