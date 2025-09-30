@@ -1,0 +1,120 @@
+import React, { useState, useEffect } from "react";
+import { Expense, Income } from "@/entities/all";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import ExpenseForm from "../components/budget/ExpenseForm";
+import IncomeForm from "../components/budget/IncomeForm";
+import TransactionList from "../components/budget/TransactionList";
+import BudgetSummary from "../components/budget/BudgetSummary";
+
+export default function Budget() {
+  const [expenses, setExpenses] = useState([]);
+  const [income, setIncome] = useState([]);
+  const [showExpenseForm, setShowExpenseForm] = useState(false);
+  const [showIncomeForm, setShowIncomeForm] = useState(false);
+  const [editingExpense, setEditingExpense] = useState(null);
+  const [editingIncome, setEditingIncome] = useState(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const [expensesData, incomeData] = await Promise.all([
+      Expense.list("-date"),
+      Income.list("-date")
+    ]);
+    setExpenses(expensesData);
+    setIncome(incomeData);
+  };
+
+  const handleExpenseSubmit = async (data) => {
+    if (editingExpense) {
+      await Expense.update(editingExpense.id, data);
+    } else {
+      await Expense.create(data);
+    }
+    setShowExpenseForm(false);
+    setEditingExpense(null);
+    loadData();
+  };
+
+  const handleIncomeSubmit = async (data) => {
+    if (editingIncome) {
+      await Income.update(editingIncome.id, data);
+    } else {
+      await Income.create(data);
+    }
+    setShowIncomeForm(false);
+    setEditingIncome(null);
+    loadData();
+  };
+
+  const handleDeleteExpense = async (id) => {
+    await Expense.delete(id);
+    loadData();
+  };
+
+  const handleDeleteIncome = async (id) => {
+    await Income.delete(id);
+    loadData();
+  };
+
+  return (
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Budget Tracker</h1>
+          <p className="text-gray-600 mt-1">Manage your income and expenses</p>
+        </div>
+      </div>
+
+      <BudgetSummary expenses={expenses} income={income} />
+
+      <Tabs defaultValue="expenses" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="income">Income</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="expenses" className="space-y-4 mt-6">
+          <div className="flex justify-end">
+            <Button 
+              onClick={() => setShowExpenseForm(!showExpenseForm)}
+              className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Expense
+            </Button>
+          </div>
+
+          {showExpenseForm && (
+            <ExpenseForm
+              expense={editingExpense}
+              onSubmit={handleExpenseSubmit}
+              onCancel={() => {
+                setShowExpenseForm(false);
+                setEditingExpense(null);
+              }}
+            />
+          )}
+
+          <TransactionList
+            transactions={expenses}
+            type="expense"
+            onEdit={(expense) => {
+              setEditingExpense(expense);
+              setShowExpenseForm(true);
+            }}
+            onDelete={handleDeleteExpense}
+          />
+        </TabsContent>
+
+        <TabsContent value="income" className="space-y-4 mt-6">
+          <div className="flex justify-end">
+            <Button 
+              onClick={() => setShowIncomeForm(!showIncomeForm)}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+ 
