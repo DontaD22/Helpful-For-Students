@@ -1,0 +1,52 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Lightbulb } from "lucide-react";
+
+export default function FinancialTips({ netBalance, expenses }) {
+  const tips = [];
+
+  if (netBalance < 0) {
+    tips.push("📉 You're spending more than earning. Review your expenses and find areas to cut back.");
+  }
+
+  if (netBalance > 500) {
+    tips.push("💰 Great job! Consider putting some savings into an emergency fund.");
+  }
+
+  const foodExpenses = expenses.filter(e => e.category === 'food').reduce((sum, e) => sum + e.amount, 0);
+  if (foodExpenses > 300) {
+    tips.push("🍔 Food expenses are high. Try meal prepping to save money.");
+  }
+
+  const entertainmentExpenses = expenses.filter(e => e.category === 'entertainment').reduce((sum, e) => sum + e.amount, 0);
+  if (entertainmentExpenses > 200) {
+    tips.push("🎬 Entertainment costs add up. Look for free campus events.");
+  }
+
+  if (tips.length === 0) {
+    tips.push("✅ Keep tracking your expenses regularly");
+    tips.push("💡 Set specific savings goals to stay motivated");
+    tips.push("📚 Look for used textbooks to save money");
+  }
+
+  return (
+    <Card className="bg-gradient-to-br from-blue-50 to-green-50 border-none">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Lightbulb className="w-5 h-5 text-yellow-500" />
+          Financial Tips
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-3">
+          {tips.map((tip, index) => (
+            <li key={index} className="text-sm text-gray-700 flex items-start gap-2">
+              <span className="text-lg">{tip.split(' ')[0]}</span>
+              <span>{tip.substring(tip.indexOf(' ') + 1)}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
