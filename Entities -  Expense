@@ -1,0 +1,45 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "What was purchased"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Cost in dollars"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "tuition",
+        "textbooks",
+        "housing",
+        "food",
+        "transportation",
+        "entertainment",
+        "health",
+        "supplies",
+        "technology",
+        "other"
+      ],
+      "description": "Type of expense"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the expense occurred"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional details"
+    }
+  },
+  "required": [
+    "title",
+    "amount",
+    "category",
+    "date"
+  ]
+}
