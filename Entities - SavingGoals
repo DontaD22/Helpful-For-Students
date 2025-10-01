@@ -1,0 +1,46 @@
+{
+  "name": "SavingsGoal",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Goal name"
+    },
+    "target_amount": {
+      "type": "number",
+      "description": "Amount to save"
+    },
+    "current_amount": {
+      "type": "number",
+      "description": "Current progress",
+      "default": 0
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Target date"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "emergency_fund",
+        "study_abroad",
+        "laptop",
+        "car",
+        "graduation",
+        "summer",
+        "other"
+      ],
+      "description": "Goal category"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "target_amount",
+    "deadline",
+    "category"
+  ]
+}
