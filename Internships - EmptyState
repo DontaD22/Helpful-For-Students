@@ -1,0 +1,39 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Sparkles, PartyPopper } from "lucide-react";
+
+export default function EmptyState({ onRefresh }) {
+  return (
+    <Card className="border-none shadow-2xl bg-gradient-to-br from-pink-50 to-purple-50">
+      <CardContent className="flex flex-col items-center justify-center py-16 px-8">
+        <div className="w-24 h-24 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center mb-6 animate-bounce">
+          <PartyPopper className="w-12 h-12 text-white" />
+        </div>
+        
+        <h2 className="text-2xl font-bold text-gray-900 mb-3 text-center">
+          You've Seen All Internships!
+        </h2>
+        
+        <p className="text-gray-600 text-center mb-6 max-w-md">
+          Great job reviewing all available opportunities! Check your saved internships or wait for new postings.
+        </p>
+
+        <div className="flex gap-3">
+          <Button
+            onClick={onRefresh}
+            variant="outline"
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Refresh List
+          </Button>
+        </div>
+        
+        <p className="text-sm text-gray-500 mt-6">
+          💡 Tip: Check back regularly for new opportunities
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
