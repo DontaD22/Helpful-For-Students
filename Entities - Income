@@ -1,0 +1,41 @@
+{
+  "name": "Income",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Where the money came from"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Amount in dollars"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "job",
+        "financial_aid",
+        "scholarship",
+        "family",
+        "refund",
+        "other"
+      ],
+      "description": "Type of income"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "When received"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional details"
+    }
+  },
+  "required": [
+    "source",
+    "amount",
+    "type",
+    "date"
+  ]
+}
