@@ -1,0 +1,41 @@
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+const CATEGORIES = [
+  { value: "all", label: "All Documents" },
+  { value: "transcript", label: "Transcripts" },
+  { value: "financial_aid", label: "Financial Aid" },
+  { value: "receipt", label: "Receipts" },
+  { value: "scholarship", label: "Scholarships" },
+  { value: "tax_form", label: "Tax Forms" },
+  { value: "other", label: "Other" }
+];
+
+export default function DocumentFilters({ currentFilter, onFilterChange, documents }) {
+  const getCategoryCount = (category) => {
+    if (category === "all") return documents.length;
+    return documents.filter(doc => doc.category === category).length;
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {CATEGORIES.map((cat) => {
+        const count = getCategoryCount(cat.value);
+        return (
+          <Button
+            key={cat.value}
+            variant={currentFilter === cat.value ? "default" : "outline"}
+            onClick={() => onFilterChange(cat.value)}
+            className="gap-2"
+          >
+            {cat.label}
+            <Badge variant="secondary" className="ml-1">
+              {count}
+            </Badge>
+          </Button>
+        );
+      })}
+    </div>
+  );
+}
