@@ -1,0 +1,46 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Document name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "transcript",
+        "financial_aid",
+        "receipt",
+        "tax_form",
+        "enrollment",
+        "scholarship",
+        "loan",
+        "insurance",
+        "other"
+      ],
+      "description": "Type of document"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "semester": {
+      "type": "string",
+      "description": "Related semester"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional information"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "file_url"
+  ]
+}
