@@ -1,0 +1,116 @@
+
+import React, { useState, useEffect, useCallback } from "react";
+import { Internship } from "@/entities/Internship";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, MapPin, Clock, DollarSign, ExternalLink, Building2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+export default function MatchesList({ matches, onClose }) {
+  const [internships, setInternships] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadInternships = useCallback(async () => {
+    setLoading(true);
+    const internshipIds = matches.map(m => m.internship_id);
+    const allInternships = await Internship.list();
+    const matchedInternships = allInternships.filter(i => internshipIds.includes(i.id));
+    setInternships(matchedInternships);
+    setLoading(false);
+  }, [matches]); // `matches` is a dependency here
+
+  useEffect(() => {
+    loadInternships();
+  }, [loadInternships]); // `loadInternships` is a dependency here, which is memoized by useCallback
+
+  const typeColors = {
+    remote: "bg-green-100 text-green-800",
+    hybrid: "bg-blue-100 text-blue-800",
+    onsite: "bg-orange-100 text-orange-800"
+  };
+
+  return (
+    <div>
+      <Button
+        variant="ghost"
+        onClick={onClose}
+        className="mb-6"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Swiping
+      </Button>
+
+      <h2 className="text-2xl font-bold mb-6">Your Saved Internships</h2>
+
+      {loading ? (
+        <div className="space-y-4">
+          {Array(3).fill(0).map((_, i) => (
+            <Card key={i}>
+              <CardContent className="p-6">
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32 mb-4" />
+                <Skeleton className="h-20 w-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : internships.length === 0 ? (
+        <Card className="border-dashed border-2">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Building2 className="w-12 h-12 text-gray-400 mb-4" />
+            <p className="text-gray-500">No saved internships yet</p>
+            <p className="text-sm text-gray-400 mt-2">Start swiping to find your perfect match!</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {internships.map((internship) => (
+            <Card key={internship.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="text-xl">{internship.position}</CardTitle>
+                    <p className="text-gray-600 mt-1">{internship.company}</p>
+                  </div>
+                  <Badge className={typeColors[internship.type]}>
+                    {internship.type}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-gray-700">{internship.description}</p>
+                
+                <div className="flex flex-wrap gap-4 text-sm">
+                  {internship.location && (
+                    <div className="flex items-center gap-1 text-gray-600">
+                      <MapPin className="w-4 h-4" />
+                      {internship.location}
+                    </div>
+                  )}
+                  {internship.duration && (
+                    <div className="flex items-center gap-1 text-gray-600">
+                      <Clock className="w-4 h-4" />
+                      {internship.duration}
+                    </div>
+                  )}
+                  {internship.salary_range && (
+                    <div className="flex items-center gap-1 text-gray-600">
+                      <DollarSign className="w-4 h-4" />
+                      {internship.salary_range}
+                    </div>
+                  )}
+                </div>
+
+                <Button className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Apply Now
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
