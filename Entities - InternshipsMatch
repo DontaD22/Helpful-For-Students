@@ -1,0 +1,26 @@
+{
+  "name": "InternshipMatch",
+  "type": "object",
+  "properties": {
+    "internship_id": {
+      "type": "string",
+      "description": "Reference to internship"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "liked",
+        "passed"
+      ],
+      "description": "User's decision"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the internship"
+    }
+  },
+  "required": [
+    "internship_id",
+    "status"
+  ]
+}
