@@ -1,0 +1,147 @@
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+
+export default function SemesterForm({ semester, onSubmit, onCancel }) {
+  const [formData, setFormData] = useState(semester || {
+    semester_name: "",
+    tuition: "",
+    books: "",
+    housing: "",
+    meal_plan: "",
+    transportation: "",
+    other_fees: "",
+    start_date: "",
+    end_date: ""
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      tuition: parseFloat(formData.tuition) || 0,
+      books: parseFloat(formData.books) || 0,
+      housing: parseFloat(formData.housing) || 0,
+      meal_plan: parseFloat(formData.meal_plan) || 0,
+      transportation: parseFloat(formData.transportation) || 0,
+      other_fees: parseFloat(formData.other_fees) || 0
+    });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{semester ? 'Edit Semester' : 'Add New Semester'}</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="semester_name">Semester Name</Label>
+              <Input
+                id="semester_name"
+                value={formData.semester_name}
+                onChange={(e) => setFormData({...formData, semester_name: e.target.value})}
+                placeholder="e.g. Fall 2024"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tuition">Tuition ($)</Label>
+              <Input
+                id="tuition"
+                type="number"
+                step="0.01"
+                value={formData.tuition}
+                onChange={(e) => setFormData({...formData, tuition: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="books">Books & Materials ($)</Label>
+              <Input
+                id="books"
+                type="number"
+                step="0.01"
+                value={formData.books}
+                onChange={(e) => setFormData({...formData, books: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="housing">Housing ($)</Label>
+              <Input
+                id="housing"
+                type="number"
+                step="0.01"
+                value={formData.housing}
+                onChange={(e) => setFormData({...formData, housing: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="meal_plan">Meal Plan ($)</Label>
+              <Input
+                id="meal_plan"
+                type="number"
+                step="0.01"
+                value={formData.meal_plan}
+                onChange={(e) => setFormData({...formData, meal_plan: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="transportation">Transportation ($)</Label>
+              <Input
+                id="transportation"
+                type="number"
+                step="0.01"
+                value={formData.transportation}
+                onChange={(e) => setFormData({...formData, transportation: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="other_fees">Other Fees ($)</Label>
+              <Input
+                id="other_fees"
+                type="number"
+                step="0.01"
+                value={formData.other_fees}
+                onChange={(e) => setFormData({...formData, other_fees: e.target.value})}
+                placeholder="0.00"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="start_date">Start Date</Label>
+              <Input
+                id="start_date"
+                type="date"
+                value={formData.start_date}
+                onChange={(e) => setFormData({...formData, start_date: e.target.value})}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="end_date">End Date</Label>
+              <Input
+                id="end_date"
+                type="date"
+                value={formData.end_date}
+                onChange={(e) => setFormData({...formData, end_date: e.target.value})}
+              />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
+          <Button type="submit" className="bg-gradient-to-r from-blue-500 to-purple-500">
+            {semester ? 'Update' : 'Create'} Semester
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+}
