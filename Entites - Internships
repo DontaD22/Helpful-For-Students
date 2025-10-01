@@ -1,0 +1,71 @@
+{
+  "name": "Internship",
+  "type": "object",
+  "properties": {
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "position": {
+      "type": "string",
+      "description": "Job title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Job description"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "Required skills and qualifications"
+    },
+    "location": {
+      "type": "string",
+      "description": "Job location"
+    },
+    "salary_range": {
+      "type": "string",
+      "description": "Compensation range"
+    },
+    "duration": {
+      "type": "string",
+      "description": "Internship length"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "remote",
+        "hybrid",
+        "onsite"
+      ],
+      "description": "Work arrangement"
+    },
+    "industry": {
+      "type": "string",
+      "enum": [
+        "technology",
+        "finance",
+        "healthcare",
+        "marketing",
+        "engineering",
+        "design",
+        "education",
+        "nonprofit",
+        "other"
+      ],
+      "description": "Industry category"
+    },
+    "application_deadline": {
+      "type": "string",
+      "format": "date"
+    },
+    "company_logo": {
+      "type": "string",
+      "description": "URL to company logo"
+    }
+  },
+  "required": [
+    "company",
+    "position",
+    "description"
+  ]
+}
