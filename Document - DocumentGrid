@@ -1,0 +1,83 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { FileText, ExternalLink, Trash2, Calendar } from "lucide-react";
+import { format } from "date-fns";
+
+export default function DocumentGrid({ documents, onDelete }) {
+  const categoryColors = {
+    transcript: "bg-blue-100 text-blue-800",
+    financial_aid: "bg-green-100 text-green-800",
+    receipt: "bg-orange-100 text-orange-800",
+    scholarship: "bg-purple-100 text-purple-800",
+    loan: "bg-red-100 text-red-800",
+  };
+
+  if (documents.length === 0) {
+    return (
+      <Card className="border-dashed border-2">
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <FileText className="w-12 h-12 text-gray-400 mb-4" />
+          <p className="text-gray-500">No documents uploaded yet</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {documents.map((doc) => (
+        <Card key={doc.id} className="hover:shadow-lg transition-shadow">
+          <CardContent className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <FileText className="w-6 h-6 text-blue-600" />
+              </div>
+              <Badge className={categoryColors[doc.category]}>
+                {doc.category.replace(/_/g, ' ')}
+              </Badge>
+            </div>
+            
+            <h3 className="font-semibold mb-2 line-clamp-2">{doc.title}</h3>
+            
+            {doc.semester && (
+              <p className="text-sm text-gray-600 mb-2">Semester: {doc.semester}</p>
+            )}
+            
+            {doc.upload_date && (
+              <div className="flex items-center gap-1 text-xs text-gray-500 mb-3">
+                <Calendar className="w-3 h-3" />
+                {format(new Date(doc.upload_date), "MMM d, yyyy")}
+              </div>
+            )}
+            
+            {doc.notes && (
+              <p className="text-sm text-gray-600 mb-4 line-clamp-2">{doc.notes}</p>
+            )}
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex-1"
+                onClick={() => window.open(doc.file_url, '_blank')}
+              >
+                <ExternalLink className="w-4 h-4 mr-1" />
+                View
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => onDelete(doc.id)}
+                className="text-red-500 hover:text-red-600"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
