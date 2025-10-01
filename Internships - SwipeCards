@@ -1,0 +1,221 @@
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Clock, DollarSign, Calendar, Building2, Heart, X } from "lucide-react";
+import { format } from "date-fns";
+
+export default function SwipeCard({ internship, onSwipe }) {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const cardRef = useRef(null);
+  const startPos = useRef({ x: 0, y: 0 });
+
+  // Memoize handleStart as it uses `position.x` from state
+  const handleStart = useCallback((clientX, clientY) => {
+    setIsDragging(true);
+    startPos.current = { x: clientX - position.x, y: clientY - position.y };
+  }, [position.x]); // Depends on position.x to get the current value
+
+  // Memoize handleMove as it uses `isDragging` from state
+  const handleMove = useCallback((clientX, clientY) => {
+    if (!isDragging) return; // Depends on isDragging to guard execution
+    
+    const newX = clientX - startPos.current.x;
+    const newY = clientY - startPos.current.y;
+    const newRotation = newX / 20;
+    
+    setPosition({ x: newX, y: newY }); // setPosition is a stable setter
+    setRotation(newRotation); // setRotation is a stable setter
+  }, [isDragging]); // Depends on isDragging
+
+  // Memoize handleEnd as it uses `isDragging`, `position.x`, `position.y`, and `onSwipe`
+  const handleEnd = useCallback(() => {
+    if (!isDragging) return;
+    setIsDragging(false);
+
+    if (Math.abs(position.x) > 150) {
+      const direction = position.x > 0 ? 'right' : 'left';
+      
+      // `position.x` and `position.y` are used to calculate the new position
+      setPosition({ 
+        x: position.x > 0 ? 1000 : -1000, 
+        y: position.y 
+      });
+      
+      setTimeout(() => {
+        onSwipe(direction); // `onSwipe` is a prop and needs to be in dependencies
+        setPosition({ x: 0, y: 0 });
+        setRotation(0);
+      }, 300);
+    } else {
+      setPosition({ x: 0, y: 0 });
+      setRotation(0);
+    }
+  }, [isDragging, position.x, position.y, onSwipe]); // All these are dependencies
+
+  // Memoize event handlers that are passed to DOM elements or other useCallback hooks
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault();
+    handleStart(e.clientX, e.clientY);
+  }, [handleStart]); // Depends on handleStart
+
+  const handleMouseMove = useCallback((e) => {
+    handleMove(e.clientX, e.clientY);
+  }, [handleMove]); // Depends on handleMove
+
+  const handleMouseUp = useCallback(() => {
+    handleEnd();
+  }, [handleEnd]); // Depends on handleEnd
+
+  const handleTouchStart = useCallback((e) => {
+    handleStart(e.touches[0].clientX, e.touches[0].clientY);
+  }, [handleStart]); // Depends on handleStart
+
+  const handleTouchMove = useCallback((e) => {
+    handleMove(e.touches[0].clientX, e.touches[0].clientY);
+  }, [handleMove]); // Depends on handleMove
+
+  const handleTouchEnd = useCallback(() => {
+    handleEnd();
+  }, [handleEnd]); // Depends on handleEnd
+
+  useEffect(() => {
+    if (isDragging) {
+      // Add event listeners to the document for global drag tracking
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        // Clean up event listeners
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]); // Dependencies are now stable memoized functions
+
+  const typeColors = {
+    remote: "bg-green-100 text-green-800",
+    hybrid: "bg-blue-100 text-blue-800",
+    onsite: "bg-orange-100 text-orange-800"
+  };
+
+  const industryColors = {
+    technology: "bg-purple-100 text-purple-800",
+    finance: "bg-emerald-100 text-emerald-800",
+    healthcare: "bg-red-100 text-red-800",
+    marketing: "bg-pink-100 text-pink-800",
+    engineering: "bg-indigo-100 text-indigo-800",
+    design: "bg-violet-100 text-violet-800"
+  };
+
+  const showLikeOverlay = position.x > 50;
+  const showNopeOverlay = position.x < -50;
+
+  return (
+    <div className="relative h-[600px] select-none">
+      <Card
+        ref={cardRef}
+        className="absolute inset-0 cursor-grab active:cursor-grabbing shadow-2xl overflow-hidden"
+        style={{
+          transform: `translate(${position.x}px, ${position.y}px) rotate(${rotation}deg)`,
+          transition: isDragging ? 'none' : 'all 0.3s ease-out',
+        }}
+        onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {showLikeOverlay && (
+          <div className="absolute inset-0 bg-green-500 bg-opacity-20 flex items-center justify-center z-10 pointer-events-none">
+            <div className="border-4 border-green-500 rounded-2xl px-8 py-4 rotate-12">
+              <Heart className="w-16 h-16 text-green-500 fill-green-500" />
+            </div>
+          </div>
+        )}
+        
+        {showNopeOverlay && (
+          <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex items-center justify-center z-10 pointer-events-none">
+            <div className="border-4 border-red-500 rounded-2xl px-8 py-4 -rotate-12">
+              <X className="w-16 h-16 text-red-500" />
+            </div>
+          </div>
+        )}
+
+        <div className="h-32 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 flex items-center justify-center">
+          {internship.company_logo ? (
+            <img src={internship.company_logo} alt={internship.company} className="h-20 w-20 object-contain" />
+          ) : (
+            <Building2 className="w-16 h-16 text-white" />
+          )}
+        </div>
+
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <CardTitle className="text-2xl mb-2">{internship.position}</CardTitle>
+              <p className="text-lg font-semibold text-gray-700">{internship.company}</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mt-3">
+            <Badge className={typeColors[internship.type]}>
+              {internship.type}
+            </Badge>
+            {internship.industry && (
+              <Badge className={industryColors[internship.industry]}>
+                {internship.industry}
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-semibold mb-2">About the Role</h4>
+            <p className="text-gray-700 leading-relaxed">{internship.description}</p>
+          </div>
+
+          {internship.requirements && (
+            <div>
+              <h4 className="font-semibold mb-2">Requirements</h4>
+              <p className="text-gray-600 text-sm">{internship.requirements}</p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            {internship.location && (
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-600">{internship.location}</span>
+              </div>
+            )}
+            
+            {internship.duration && (
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-600">{internship.duration}</span>
+              </div>
+            )}
+            
+            {internship.salary_range && (
+              <div className="flex items-center gap-2 text-sm">
+                <DollarSign className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-600">{internship.salary_range}</span>
+              </div>
+            )}
+            
+            {internship.application_deadline && (
+              <div className="flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4 text-gray-400" />
+                <span className="text-gray-600">
+                  Due: {format(new Date(internship.application_deadline), "MMM d")}
+                </span>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
