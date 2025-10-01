@@ -1,0 +1,46 @@
+{
+  "name": "SemesterCost",
+  "type": "object",
+  "properties": {
+    "semester_name": {
+      "type": "string",
+      "description": "e.g. Fall 2024, Spring 2025"
+    },
+    "tuition": {
+      "type": "number",
+      "description": "Tuition cost"
+    },
+    "books": {
+      "type": "number",
+      "description": "Textbooks and materials"
+    },
+    "housing": {
+      "type": "number",
+      "description": "Rent or dorm costs"
+    },
+    "meal_plan": {
+      "type": "number",
+      "description": "Food expenses"
+    },
+    "transportation": {
+      "type": "number",
+      "description": "Gas, parking, transit"
+    },
+    "other_fees": {
+      "type": "number",
+      "description": "Lab fees, activities, etc"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "semester_name",
+    "start_date"
+  ]
+}
